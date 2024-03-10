@@ -437,10 +437,10 @@ class BaselineAgent(ArtificialBrain):
                                 self._to_search.append(self._door['room_name'])
                                 self._phase = Phase.FIND_NEXT_GOAL 
                             
-                            elif self._tick > 200 and not self._door['room_name'] in self._to_search:
+                            elif self._tick > 150 and not self._door['room_name'] in self._to_search:
                                 self._waiting = False
                                 self._to_search.append(self._door['room_name'])
-                                self._phase = Phase.FIND_NEXT_GOAL 
+                                self._phase = Phase.FIND_NEXT_GOAL
                             
                         # Communicate which obstacle is blocking the entrance
                         if self._answered == False and not self._remove and not self._waiting:
@@ -1015,14 +1015,14 @@ class BaselineAgent(ArtificialBrain):
                 zones.append(place)
         return zones
 
-    def _gamble(self, member, trustBeliefs, trustType):
+    def _gamble(self, trustBeliefs, trustType):
         '''
         Return true with probability proportional to the competence of the team members
         '''
-        CEIL = 0.8
-        FLOOR = -0.8
+        CEIL = 0.5
+        FLOOR = -0.5
         
-        belief = trustBeliefs[member][trustType]
+        belief = trustBeliefs[self._human_name][trustType]
         # Return false below a threshold
         if belief <= FLOOR:
             return False
@@ -1054,13 +1054,13 @@ class BaselineAgent(ArtificialBrain):
                     area = 'area ' + msg.split()[-1]
                     if area not in self._searched_rooms:
                         # Add the area with probability proportional to the member's competence
-                        if self._gamble(member, trustBeliefs, 'competence'):
+                        if self._gamble(trustBeliefs, 'competence'):
                             self._searched_rooms.append(area)
                             
                 # If a received message involves team members finding victims, add these victims and their locations to memory
                 if msg.startswith("Found:"):
                     # Trust the human message with probability proportional to the member's competence
-                    if self._gamble(member, trustBeliefs, 'competence'):
+                    if self._gamble(trustBeliefs, 'competence'):
                         # Identify which victim and area it concerns
                         if len(msg.split()) == 6:
                             foundVic = ' '.join(msg.split()[1:4])
@@ -1120,7 +1120,7 @@ class BaselineAgent(ArtificialBrain):
                 # If a received message involves team members rescuing victims, add these victims and their locations to memory
                 if msg.startswith('Collect:'):
                     # Trust the human message with probability proportional to the member's competence
-                    if self._gamble(member, trustBeliefs, 'competence'):
+                    if self._gamble(trustBeliefs, 'competence'):
                         # Identify which victim and area it concerns
                         if len(msg.split()) == 6:
                             collectVic = ' '.join(msg.split()[1:4])
