@@ -432,12 +432,12 @@ class BaselineAgent(ArtificialBrain):
                                 self._to_search.append(self._door['room_name'])
                                 self._phase = Phase.FIND_NEXT_GOAL 
                             
-                            elif self._tick > 100 and not self._door['room_name'] in self._to_search and trustBeliefs[self._human_name]['willingness'] < 0:
+                            elif self._tick > 150 and not self._door['room_name'] in self._to_search and trustBeliefs[self._human_name]['willingness'] < 0:
                                 self._waiting = False
                                 self._to_search.append(self._door['room_name'])
                                 self._phase = Phase.FIND_NEXT_GOAL 
                             
-                            elif self._tick > 150 and not self._door['room_name'] in self._to_search:
+                            elif self._tick > 200 and not self._door['room_name'] in self._to_search:
                                 self._waiting = False
                                 self._to_search.append(self._door['room_name'])
                                 self._phase = Phase.FIND_NEXT_GOAL
@@ -538,19 +538,19 @@ class BaselineAgent(ArtificialBrain):
                         
                         # If the human is not willing, wait less and remove alone
                         if self._answered == True and self._waiting == True:
-                            if self._tick > 75 and trustBeliefs[self._human_name]['willingness'] < -0.5:
+                            if self._tick > 100 and trustBeliefs[self._human_name]['willingness'] < -0.5:
                                 self._waiting = False
                                 self._phase = Phase.ENTER_ROOM
                                 self._remove = False
                                 return RemoveObject.__name__, {'object_id': info['obj_id']}
                             
-                            elif self._tick > 100 and trustBeliefs[self._human_name]['willingness'] < 0:
+                            elif self._tick > 150 and trustBeliefs[self._human_name]['willingness'] < 0:
                                 self._waiting = False
                                 self._phase = Phase.ENTER_ROOM
                                 self._remove = False
                                 return RemoveObject.__name__, {'object_id': info['obj_id']}
                             
-                            elif self._tick > 125:
+                            elif self._tick > 200:
                                 self._waiting = False
                                 self._phase = Phase.ENTER_ROOM
                                 self._remove = False
@@ -1297,17 +1297,16 @@ class BaselineAgent(ArtificialBrain):
 
         # Responsiveness: if the human makes the robot wait too much, he's either lazy or in bad faith.
         # So we decrement willingness, linearly with the time of wait
-        if self._tick >= 200:
+        print("TICK", self._tick)
+        if self._tick % 125 == 124 and not self._phase == Phase.INTRO:
             # Confidence update: the more RescueRobot waits, the more his confidence towards bad actions grows (meaning
             # the confidence value shrinks to 0)
             trustBeliefs[self._human_name]['confidence'] -= 0.05
             trustBeliefs[self._human_name]['confidence'] = np.clip(trustBeliefs[self._human_name]['confidence'], 0, 1)
 
-            trustBeliefs[self._human_name]['willingness'] -= 0.15 * (1-trustBeliefs[self._human_name]['confidence'])
+            trustBeliefs[self._human_name]['willingness'] -= 0.20 * (1-trustBeliefs[self._human_name]['confidence'])
             trustBeliefs[self._human_name]['willingness'] = np.clip(trustBeliefs[self._human_name]['willingness'], -1, 1)
-
-            self._tick = 0
-
+            
 
         # Total score: if the team has reached a good completeness level after not much time, this is symptomatic of the competence
         # of the human (indifferently from his willingness, with his actions the task is getting done)
